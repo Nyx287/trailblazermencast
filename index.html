@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <!-- Add favicon -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <!-- Change your browser tab title here -->
     <title>Mencast Database Query</title>
     <style>
@@ -27,7 +29,18 @@
             /* Add title margin */
             margin-bottom: 30px;
         }
+        .logo-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
 
+        .logo {
+            height: 50px; /* Adjust size as needed */
+            width: auto;
+        }
+        
         #chat-container {
             height: 400px;
             border: 1px solid #ccc;
@@ -121,6 +134,10 @@
 <body>
     <!-- Change your main title here -->
     <h1>Mencast Database Query</h1>
+        <!-- Add logo -->
+    <div class="logo-container">
+        <img src="logo.png" alt="Logo" class="logo">
+    </div>
     <div id="chat-container"></div>
     <div id="error-container"></div>
     <div id="loading" class="loading">Processing your request...</div>
