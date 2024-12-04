@@ -52,33 +52,54 @@
         button:hover {
             background-color: #45a049;
         }
+        #error-container {
+            color: red;
+            margin: 10px 0;
+            display: none;
+        }
+        .loading {
+            margin: 10px 0;
+            color: #666;
+            display: none;
+        }
     </style>
 </head>
 <body>
     <h1>JSON Data Chat Interface</h1>
     <div id="chat-container"></div>
+    <div id="error-container"></div>
+    <div id="loading" class="loading">Processing your request...</div>
     <div id="input-container">
         <input type="text" id="user-input" placeholder="Type your question...">
-        <button onclick="sendMessage()">Send</button>
+        <button onclick="sendMessage()" id="send-button">Send</button>
     </div>
-        
+    
     <script>
         let sessionId = Date.now().toString();
         const chatContainer = document.getElementById('chat-container');
         const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const errorContainer = document.getElementById('error-container');
+        const loadingIndicator = document.getElementById('loading');
         
-        // Test Comment ---- 123
         const FUNCTION_URL = 'https://us-central1-ai-sandbox-company-109.cloudfunctions.net/opensearch-function1';
 
         async function sendMessage() {
             const query = userInput.value.trim();
             if (!query) return;
 
+            // Disable input and show loading
+            userInput.disabled = true;
+            sendButton.disabled = true;
+            loadingIndicator.style.display = 'block';
+            errorContainer.style.display = 'none';
+
             // Add user message to chat
             addMessage(query, 'user');
             userInput.value = '';
 
             try {
+                console.log('Sending request to:', FUNCTION_URL);
                 const response = await fetch(FUNCTION_URL, {
                     method: 'POST',
                     headers: {
@@ -90,14 +111,36 @@
                     })
                 });
 
+                // Debug logging
+                console.log('Response status:', response.status);
+                console.log('Response headers:', Array.from(response.headers.entries()));
+
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    throw new Error(`HTTP error! status: ${response.status}, details: ${errorText}`);
                 }
 
                 const data = await response.json();
+                console.log('Response data:', data);
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
                 addMessage(data.response, 'bot');
+
             } catch (error) {
-                addMessage('Error: ' + error.message, 'bot');
+                console.error('Detailed error:', error);
+                errorContainer.textContent = 'Error: ' + error.message;
+                errorContainer.style.display = 'block';
+                addMessage('Sorry, there was an error processing your request. Please try again.', 'bot');
+            } finally {
+                // Re-enable input and hide loading
+                userInput.disabled = false;
+                sendButton.disabled = false;
+                loadingIndicator.style.display = 'none';
+                userInput.focus();
             }
         }
 
@@ -109,9 +152,16 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
+        // Handle Enter key
         userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
         });
+
+        // Add initial welcome message
+        addMessage('Hello! How can I help you today?', 'bot');
     </script>
 </body>
 </html>
