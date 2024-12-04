@@ -86,6 +86,12 @@
             content: "";
         }
 
+        /* Additional class for technical content */
+        .technical-content {
+            border-left: 5px solid #4CAF50;
+            padding-left: 10px;
+        }
+
         #input-container {
             display: flex;
             gap: 10px;
@@ -218,28 +224,23 @@
             messageDiv.className = `message ${sender}-message`;
             
             // Format structured content
-            if (text.includes('Project') || text.includes('Customer')) {
-                const formattedText = text
-                    .split(/(\d+\.)/)
-                    .map(part => {
-                        if (part.includes('**')) {
-                            return part.replace(/\*\*/g, '')
-                                      .replace(/(\w+:)/, '<strong>$1</strong>')
-                                      .trim();
-                        }
-                        return part;
-                    })
-                    .join('')
-                    .split('**')
-                    .join('')
-                    .replace(/(\d+\.)/, '<br>$1')
-                    .replace(/Project ID:/g, '<br><strong>Project ID:</strong>')
-                    .replace(/Customer:/g, '<br><strong>Customer:</strong>')
-                    .replace(/Hull Number:/g, '<br><strong>Hull Number:</strong>');
+            const formattedText = text
+                // Handle bold text with **
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                // Add line breaks before hull numbers
+                .replace(/\*\*\*(H\d{3}(-H\d{3})?|\d+):/g, '<br><br><strong>$1:</strong>')
+                // Add paragraphs for readability
+                .split('\n').join('<br><br>')
+                // Add spacing after periods
+                .replace(/\. /g, '.<br><br>')
+                // Format lists with bullets
+                .replace(/\u2022 /g, '<br>• ');
 
-                messageDiv.innerHTML = formattedText;
-            } else {
-                messageDiv.textContent = text;
+            messageDiv.innerHTML = formattedText;
+
+            // Add additional styling classes for technical content
+            if (text.includes('propeller') || text.includes('Hull')) {
+                messageDiv.classList.add('technical-content');
             }
 
             chatContainer.appendChild(messageDiv);
