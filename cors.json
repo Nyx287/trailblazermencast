@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["http://trailblazer.mencast.tech"],
+    "responseHeader": ["Content-Type", "Authorization", "x-goog-meta-custom-header"],
+    "method": ["GET", "HEAD", "OPTIONS", "POST"],
+    "maxAgeSeconds": 3600
+  }
+]
