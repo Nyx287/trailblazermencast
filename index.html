@@ -235,7 +235,7 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        query: "List all projects and customers",
+                        query: "List all customers and their project IDs", // Specific query for customers
                         sessionId: sessionId
                     })
                 });
@@ -246,12 +246,33 @@
 
                 const data = await response.json();
                 if (data.response) {
-                    populateSidebars(data.response);
+                    populateCustomerList(data.response);
                 }
             } catch (error) {
                 console.error('Error loading initial data:', error);
             }
         }
+
+function populateCustomerList(data) {
+    const customersList = document.getElementById('customers-list');
+    customersList.innerHTML = ''; // Clear existing content
+    
+    // Extract customer information using regex
+    // Assuming the response contains customer information in a structured format
+    const customerMatches = data.match(/Customer:\s*([^\n]+)(?:\s+Project ID:\s*(\d+))?/g) || [];
+    
+    // Keep track of unique customers
+    const uniqueCustomers = new Set();
+    
+    customerMatches.forEach(match => {
+        const customer = match.match(/Customer:\s*([^\n]+)/)[1].trim();
+        if (!uniqueCustomers.has(customer)) {
+            uniqueCustomers.add(customer);
+            const item = createListItem(customer, 'customer');
+            customersList.appendChild(item);
+        }
+    });
+}
 
         function populateSidebars(data) {
             const projectsList = document.getElementById('projects-list');
