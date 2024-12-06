@@ -10,25 +10,73 @@
         /* Main styling */
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
+            margin: 0;
             padding: 20px;
-
             background-image: url('background.jpg');
             background-size: cover;
             background-position: center;
-           
         }
 
-        /* Header styling - modify the main title appearance */
+        /* Container layout */
+        .main-container {
+            display: flex;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Sidebar styling */
+        .sidebar {
+            width: 250px;
+            background: rgba(245, 245, 245, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            height: fit-content;
+            max-height: 600px;
+        }
+
+        .sidebar h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .list-container {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .list-item {
+            padding: 8px 12px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .list-item:hover {
+            background: #e3f2fd;
+            transform: translateX(5px);
+        }
+
+        /* Main content area */
+        .main-content {
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        /* Header styling */
         h1 {
             color: #333;
             text-align: center;
-            /* Change title font size */
             font-size: 28px;
-            /* Add title margin */
             margin-bottom: 30px;
         }
+
         .logo-container {
             position: fixed;
             top: 20px;
@@ -37,8 +85,8 @@
         }
 
         .logo {
-            height: 50px; /* Adjust size as needed */
-            width: fixed;
+            height: 50px;
+            width: auto;
         }
         
         #chat-container {
@@ -48,7 +96,6 @@
             padding: 10px;
             margin-bottom: 20px;
             background-color: #f9f9f9;
-            /* Add shadow to chat container */
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             border-radius: 8px;
         }
@@ -60,21 +107,18 @@
             line-height: 1.5;
         }
 
-        /* Customize user message style */
         .user-message {
             background-color: #e3f2fd;
             margin-left: 20%;
             border-radius: 15px 15px 0 15px;
         }
 
-        /* Customize bot message style */
         .bot-message {
             background-color: #f5f5f5;
             margin-right: 20%;
             border-radius: 15px 15px 15px 0;
         }
 
-        /* Formatting for structured content */
         .message strong {
             color: #2c5282;
             font-weight: 600;
@@ -86,7 +130,6 @@
             content: "";
         }
 
-        /* Additional class for technical content */
         .technical-content {
             border-left: 5px solid #4CAF50;
             padding-left: 10px;
@@ -105,10 +148,9 @@
             font-size: 14px;
         }
 
-        /* Customize button appearance */
         button {
             padding: 10px 20px;
-            background-color: #4CAF50;  /* Change button color here */
+            background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 4px;
@@ -117,11 +159,11 @@
         }
 
         button:hover {
-            background-color: #45a049;  /* Change button hover color here */
+            background-color: #45a049;
         }
 
         #error-container {
-            color: #dc3545;  /* Change error message color here */
+            color: #dc3545;
             margin: 10px 0;
             display: none;
             padding: 10px;
@@ -138,22 +180,41 @@
     </style>
 </head>
 <body>
-    <!-- Change your main title here -->
-    <h1>Mencast Database Query</h1>
-        <!-- Add logo -->
     <div class="logo-container">
         <img src="logo.png" alt="Logo" class="logo">
     </div>
-    <div id="chat-container"></div>
-    <div id="error-container"></div>
-    <div id="loading" class="loading">Processing your request...</div>
-    <div id="input-container">
-        <!-- Customize placeholder text -->
-        <input type="text" id="user-input" placeholder="Type your question...">
-        <!-- Change button text -->
-        <button onclick="sendMessage()" id="send-button">Send</button>
-    </div>
     
+    <h1>Mencast Database Query</h1>
+
+    <div class="main-container">
+        <!-- Left sidebar -->
+        <div class="sidebar">
+            <h3>Available Projects</h3>
+            <div class="list-container" id="projects-list">
+                <!-- Projects will be populated here -->
+            </div>
+        </div>
+
+        <!-- Main chat area -->
+        <div class="main-content">
+            <div id="chat-container"></div>
+            <div id="error-container"></div>
+            <div id="loading" class="loading">Processing your request...</div>
+            <div id="input-container">
+                <input type="text" id="user-input" placeholder="Type your question...">
+                <button onclick="sendMessage()" id="send-button">Send</button>
+            </div>
+        </div>
+
+        <!-- Right sidebar -->
+        <div class="sidebar">
+            <h3>Customers</h3>
+            <div class="list-container" id="customers-list">
+                <!-- Customers will be populated here -->
+            </div>
+        </div>
+    </div>
+
     <script>
         let sessionId = Date.now().toString();
         const chatContainer = document.getElementById('chat-container');
@@ -162,12 +223,66 @@
         const errorContainer = document.getElementById('error-container');
         const loadingIndicator = document.getElementById('loading');
         
-        // Your Cloud Function URL
         const FUNCTION_URL = 'https://us-central1-ai-sandbox-company-109.cloudfunctions.net/opensearch-function1';
-
-        // Minimum time between requests (milliseconds)
         const MIN_REQUEST_INTERVAL = 1000;
         let lastRequestTime = 0;
+
+        async function loadInitialData() {
+            try {
+                const response = await fetch(FUNCTION_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        query: "List all projects and customers",
+                        sessionId: sessionId
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load initial data');
+                }
+
+                const data = await response.json();
+                if (data.response) {
+                    populateSidebars(data.response);
+                }
+            } catch (error) {
+                console.error('Error loading initial data:', error);
+            }
+        }
+
+        function populateSidebars(data) {
+            const projectsList = document.getElementById('projects-list');
+            const customersList = document.getElementById('customers-list');
+            
+            const projects = data.match(/Project ID:\s*(\d+)/g) || [];
+            const customers = data.match(/Customer:\s*([^*\n]+)/g) || [];
+
+            projects.forEach(project => {
+                const projectId = project.match(/\d+/)[0];
+                const item = createListItem(projectId, 'project');
+                projectsList.appendChild(item);
+            });
+
+            customers.forEach(customer => {
+                const customerName = customer.replace('Customer:', '').trim();
+                const item = createListItem(customerName, 'customer');
+                customersList.appendChild(item);
+            });
+        }
+
+        function createListItem(text, type) {
+            const item = document.createElement('div');
+            item.className = 'list-item';
+            item.textContent = type === 'project' ? `Project ${text}` : text;
+            item.onclick = () => {
+                userInput.value = `Tell me about ${type} ${text}`;
+                sendMessage();
+            };
+            return item;
+        }
 
         async function sendMessage() {
             const now = Date.now();
@@ -179,11 +294,9 @@
             const query = userInput.value.trim();
             if (!query) return;
 
-            // Disable input and show loading
             setLoading(true);
             lastRequestTime = now;
 
-            // Add user message
             addMessage(query, 'user');
             userInput.value = '';
 
@@ -223,22 +336,15 @@
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${sender}-message`;
             
-            // Format structured content
             const formattedText = text
-                // Handle bold text with **
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                // Add line breaks before hull numbers
                 .replace(/\*\*\*(H\d{3}(-H\d{3})?|\d+):/g, '<br><br><strong>$1:</strong>')
-                // Add paragraphs for readability
                 .split('\n').join('<br><br>')
-                // Add spacing after periods
                 .replace(/\. /g, '.<br><br>')
-                // Format lists with bullets
                 .replace(/\u2022 /g, '<br>• ');
 
             messageDiv.innerHTML = formattedText;
 
-            // Add additional styling classes for technical content
             if (text.includes('propeller') || text.includes('Hull')) {
                 messageDiv.classList.add('technical-content');
             }
@@ -271,7 +377,10 @@
             }
         });
 
-        // Customize initial message
+        // Load initial data when page loads
+        window.addEventListener('load', loadInitialData);
+
+        // Initial welcome message
         addMessage('Welcome to Mencast Marine, how can I help you today?', 'bot');
     </script>
 </body>
