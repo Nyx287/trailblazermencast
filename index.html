@@ -15,59 +15,9 @@
         }
 
         .main-container {
-            display: flex;
-            gap: 20px;
-            max-width: 1200px;
+            max-width: 800px;  /* Adjusted for centered layout */
             margin: 0 auto;
             padding: 20px;
-        }
-
-        .main-content {
-            flex-grow: 1;
-            min-width: 0;
-        }
-
-        .sidebar {
-            width: 250px;
-            background: rgba(245, 245, 245, 0.95);
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            height: fit-content;
-            max-height: 600px;
-        }
-
-        .sidebar h3 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 18px;
-            border-bottom: 2px solid #4CAF50;
-            padding-bottom: 8px;
-        }
-
-        .list-container {
-            max-height: 500px;
-            overflow-y: auto;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 4px;
-            padding: 5px;
-        }
-
-        .list-item {
-            padding: 8px 12px;
-            margin: 5px 0;
-            background: white;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 14px;
-            border-left: 3px solid transparent;
-        }
-
-        .list-item:hover {
-            background: #e3f2fd;
-            border-left-color: #4CAF50;
-            transform: translateX(5px);
         }
 
         h1 {
@@ -188,21 +138,12 @@
     <h1>Mencast Database Query</h1>
 
     <div class="main-container">
-        <div class="main-content">
-            <div id="chat-container"></div>
-            <div id="error-container"></div>
-            <div id="loading" class="loading">Processing your request...</div>
-            <div id="input-container">
-                <input type="text" id="user-input" placeholder="Type your question...">
-                <button onclick="sendMessage()" id="send-button">Send</button>
-            </div>
-        </div>
-
-        <div class="sidebar">
-            <h3>Customers</h3>
-            <div class="list-container" id="customers-list">
-                <!-- Customers will be populated here -->
-            </div>
+        <div id="chat-container"></div>
+        <div id="error-container"></div>
+        <div id="loading" class="loading">Processing your request...</div>
+        <div id="input-container">
+            <input type="text" id="user-input" placeholder="Type your question...">
+            <button onclick="sendMessage()" id="send-button">Send</button>
         </div>
     </div>
 
@@ -217,68 +158,6 @@
         const FUNCTION_URL = 'https://us-central1-ai-sandbox-company-109.cloudfunctions.net/opensearch-function1';
         const MIN_REQUEST_INTERVAL = 1000;
         let lastRequestTime = 0;
-
-        async function loadInitialData() {
-            try {
-                // Initial welcome message
-                addMessage('Welcome to Mencast Marine, how can I help you today?', 'bot');
-                
-                // Fetch customer list
-                const response = await fetch(FUNCTION_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        query: "List all customers only",
-                        sessionId: sessionId
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to load customers data');
-                }
-
-                const data = await response.json();
-                if (data.response) {
-                    populateCustomerList(data.response);
-                }
-            } catch (error) {
-                console.error('Error loading initial data:', error);
-                showError('Failed to load customers list');
-            }
-        }
-
-        function populateCustomerList(response) {
-            const customersList = document.getElementById('customers-list');
-            customersList.innerHTML = '';
-
-            // Extract customer names from the response
-            const customerMatches = response.match(/Customer:\s*([^\n,]+)/g) || [];
-            const uniqueCustomers = [...new Set(
-                customerMatches.map(match => 
-                    match.replace('Customer:', '').trim()
-                )
-            )].sort();
-
-            // Add each customer to the list
-            uniqueCustomers.forEach(customer => {
-                const item = document.createElement('div');
-                item.className = 'list-item';
-                item.textContent = customer;
-                item.onclick = () => {
-                    userInput.value = `Tell me about customer ${customer}`;
-                    sendMessage();
-                };
-                customersList.appendChild(item);
-            });
-
-            // Update the heading with count
-            const heading = document.querySelector('.sidebar h3');
-            if (heading) {
-                heading.textContent = `Customers (${uniqueCustomers.length})`;
-            }
-        }
 
         async function sendMessage() {
             const now = Date.now();
@@ -373,7 +252,8 @@
             }
         });
 
-        window.addEventListener('load', loadInitialData);
+        // Add initial welcome message
+        addMessage('Welcome to Mencast Marine, how can I help you today?', 'bot');
     </script>
 </body>
 </html>
